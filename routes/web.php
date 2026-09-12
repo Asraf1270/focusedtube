@@ -12,5 +12,3 @@ Route::middleware(['auth', 'active'])->group(function () {
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', fn () => view('admin.dashboard'))->name('dashboard');
 });
-
-require __DIR__.'/auth.php';
