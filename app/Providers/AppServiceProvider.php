@@ -12,9 +12,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
-        $this->app->singleton(\App\Services\AuditLogService::class, function ($app) {
-            return new \App\Services\AuditLogService($app['request']);
-        });
+        $this->app->singleton(\App\Services\YouTube\YouTubeService::class, function ($app) {
+    return new \App\Services\YouTube\YouTubeService(
+        apiKey:  config('services.youtube.key'),
+        baseUrl: config('services.youtube.base_url'),
+        timeout: (int) config('services.youtube.timeout', 8),
+        retries: (int) config('services.youtube.retries', 1),
+    );
+});
     }
 
     /**
