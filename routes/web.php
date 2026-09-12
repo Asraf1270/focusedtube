@@ -19,4 +19,30 @@ Route::middleware(['auth', 'active', 'admin'])
         Route::get('/', fn () => view('admin.dashboard'))->name('dashboard');
     });
 
+Route::middleware(['auth', 'active', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/', \App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
+
+        Route::get('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'index'])->name('videos.index');
+        Route::get('/videos/create', fn () => view('admin.placeholder', ['title' => 'Add Video']))
+            ->name('videos.create');
+
+        Route::get('/categories', fn () => view('admin.placeholder', ['title' => 'Categories']))
+            ->name('categories.index');
+
+        Route::get('/playlists', fn () => view('admin.placeholder', ['title' => 'Playlists']))
+            ->name('playlists.index');
+
+        Route::get('/users', fn () => view('admin.placeholder', ['title' => 'Users']))
+            ->name('users.index');
+
+        Route::get('/audit-logs', fn () => view('admin.placeholder', ['title' => 'Audit Logs']))
+            ->name('audit-logs.index');
+
+        Route::get('/settings', fn () => view('admin.placeholder', ['title' => 'Settings']))
+            ->name('settings.index');
+    });
+
 require __DIR__.'/auth.php';
