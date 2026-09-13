@@ -16,14 +16,9 @@ class StoreVideoRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Only a consistency check — the controller uses the session DTO
+            // for title, description, thumbnail, channel, duration, etc.
             'youtube_video_id' => ['required', 'string', 'size:11'],
-            'title'            => ['required', 'string', 'max:255'],
-            'description'      => ['nullable', 'string', 'max:20000'],
-            'thumbnail_url'    => ['nullable', 'url', 'max:500'],
-            'channel_id'       => ['nullable', 'string', 'max:64'],
-            'channel_name'     => ['nullable', 'string', 'max:191'],
-            'duration_seconds' => ['nullable', 'integer', 'min:0', 'max:86400'],
-            'youtube_published_at' => ['nullable', 'date'],
 
             'category_id'    => ['nullable', 'integer', 'exists:categories,id'],
             'status'         => ['required', Rule::in([

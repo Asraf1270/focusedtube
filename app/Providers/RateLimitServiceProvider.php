@@ -24,5 +24,12 @@ class RateLimitServiceProvider extends ServiceProvider
         RateLimiter::for('password-reset', function (Request $request) {
             return Limit::perMinute(3)->by($request->ip());
         });
+
+        RateLimiter::for('progress', function (Request $request) {
+            // Generous: one update every ~5 seconds is fine, but a well-behaved
+            // client sends at most ~10/min. Cap at 60/min per user to be safe
+            // against bursts and stuck tabs.
+            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
     }
 }

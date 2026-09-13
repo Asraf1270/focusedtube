@@ -14,23 +14,27 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('head')
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-800">
+<body class="min-h-screen bg-slate-100 text-slate-800 antialiased">
+
 <div x-data="{ sidebarOpen: false }" class="min-h-screen flex">
 
-    {{-- Sidebar backdrop (mobile) --}}
+    {{-- Mobile backdrop --}}
     <div
         x-show="sidebarOpen"
         x-transition.opacity
         @click="sidebarOpen = false"
         class="fixed inset-0 z-30 bg-slate-900/40 lg:hidden"
         style="display: none;"
+        aria-hidden="true"
     ></div>
 
     {{-- Sidebar --}}
     <aside
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-900 text-slate-200 transition-transform lg:static lg:translate-x-0"
+        class="fixed inset-y-0 left-0 z-40 flex w-64 transform flex-col bg-slate-900 text-slate-200 transition-transform lg:static lg:translate-x-0"
+        aria-label="Admin navigation"
     >
+        {{-- Brand --}}
         <div class="flex h-16 items-center gap-2 border-b border-slate-800 px-5">
             <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 font-semibold text-white">F</span>
             <div class="flex flex-col">
@@ -39,42 +43,55 @@
             </div>
         </div>
 
-        <nav class="px-3 py-4 space-y-1 text-sm">
+        {{-- Nav --}}
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1 text-sm">
             <x-admin.nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
                 Dashboard
             </x-admin.nav-link>
+
             <x-admin.nav-link :href="route('admin.videos.index')" :active="request()->routeIs('admin.videos.*')">
                 Videos
             </x-admin.nav-link>
+
             <x-admin.nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
                 Categories
             </x-admin.nav-link>
+
             <x-admin.nav-link :href="route('admin.playlists.index')" :active="request()->routeIs('admin.playlists.*')">
                 Playlists
             </x-admin.nav-link>
+
+            <div class="pt-3 mt-3 border-t border-slate-800"></div>
+
             <x-admin.nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
                 Users
             </x-admin.nav-link>
+
             <x-admin.nav-link :href="route('admin.audit-logs.index')" :active="request()->routeIs('admin.audit-logs.*')">
                 Audit Logs
             </x-admin.nav-link>
+
             <x-admin.nav-link :href="route('admin.settings.index')" :active="request()->routeIs('admin.settings.*')">
                 Settings
             </x-admin.nav-link>
         </nav>
 
-        <div class="mt-auto border-t border-slate-800 px-3 py-3 text-xs text-slate-400">
+        {{-- User / logout --}}
+        <div class="border-t border-slate-800 px-3 py-3 text-xs text-slate-400">
             <div class="px-3 pb-2">
-                Signed in as <span class="text-slate-200">{{ auth()->user()->name }}</span>
+                Signed in as
+                <span class="block text-slate-200 truncate">{{ auth()->user()?->name }}</span>
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button class="w-full rounded-md px-3 py-2 text-left hover:bg-slate-800">Logout</button>
+                <button class="w-full rounded-md px-3 py-2 text-left hover:bg-slate-800">
+                    Logout
+                </button>
             </form>
         </div>
     </aside>
 
-    {{-- Main --}}
+    {{-- Main column --}}
     <div class="flex min-h-screen flex-1 flex-col">
 
         {{-- Topbar --}}
@@ -89,14 +106,12 @@
                 </svg>
             </button>
 
-            <div class="flex flex-1 items-center gap-3">
-                <h1 class="text-base font-semibold text-slate-900">
-                    @yield('heading', 'Admin')
-                </h1>
-            </div>
+            <h1 class="flex-1 text-base font-semibold text-slate-900 truncate">
+                @yield('heading', 'Admin')
+            </h1>
 
             <div class="flex items-center gap-2">
-                <a href="{{ route('home') }}" class="btn-ghost">View site</a>
+                <a href="{{ route('home') }}" class="btn-ghost" target="_blank" rel="noopener">View site ↗</a>
             </div>
         </header>
 
@@ -110,17 +125,20 @@
         @endif
 
         {{-- Flash --}}
-        <div class="px-4 pt-4 lg:px-8">
-            <x-flash />
-        </div>
+        @if (session('status') || session('error') || $errors->any())
+            <div class="px-4 pt-4 lg:px-8">
+                <x-flash />
+            </div>
+        @endif
 
         {{-- Content --}}
         <main class="flex-1 px-4 py-6 lg:px-8">
             @yield('content')
         </main>
 
+        {{-- Footer --}}
         <footer class="border-t border-slate-200 bg-white px-4 py-4 text-xs text-slate-500 lg:px-8">
-            FocusedTube Admin
+            FocusedTube Admin · {{ now()->year }}
         </footer>
     </div>
 </div>

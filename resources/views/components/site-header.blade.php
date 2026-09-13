@@ -9,6 +9,7 @@
             <a href="{{ route('videos.index') }}" class="rounded-md px-3 py-2 hover:bg-slate-100">Videos</a>
             <a href="{{ route('categories.index') }}" class="rounded-md px-3 py-2 hover:bg-slate-100">Categories</a>
             <a href="{{ route('playlists.index') }}" class="rounded-md px-3 py-2 hover:bg-slate-100">Playlists</a>
+            <a href="{{ route('search') }}" class="rounded-md px-3 py-2 hover:bg-slate-100">Search</a>
         </nav>
 
         <div class="ml-auto flex items-center gap-2">
