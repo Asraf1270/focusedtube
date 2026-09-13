@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\PlaylistController;
+use App\Http\Controllers\Admin\PlaylistVideoController;
 
 Route::get('/', fn () => view('pages.home'))->name('home');
 
@@ -48,5 +51,26 @@ Route::middleware(['auth', 'active', 'admin'])
 
         // placeholders from Step 4 remain unchanged below…
     });
+    Route::prefix('categories')->name('categories.')->group(function () {
+    Route::get('/',               [CategoryController::class, 'index'])->name('index');
+    Route::get('/create',         [CategoryController::class, 'create'])->name('create');
+    Route::post('/',              [CategoryController::class, 'store'])->name('store');
+    Route::get('/{category}/edit', [CategoryController::class, 'edit'])->name('edit');
+    Route::patch('/{category}',   [CategoryController::class, 'update'])->name('update');
+    Route::delete('/{category}',  [CategoryController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('playlists')->name('playlists.')->group(function () {
+    Route::get('/',               [PlaylistController::class, 'index'])->name('index');
+    Route::get('/create',         [PlaylistController::class, 'create'])->name('create');
+    Route::post('/',              [PlaylistController::class, 'store'])->name('store');
+    Route::get('/{playlist}/edit', [PlaylistController::class, 'edit'])->name('edit');
+    Route::patch('/{playlist}',   [PlaylistController::class, 'update'])->name('update');
+    Route::delete('/{playlist}',  [PlaylistController::class, 'destroy'])->name('destroy');
+
+    Route::post('/{playlist}/videos',           [PlaylistVideoController::class, 'attach'])->name('videos.attach');
+    Route::delete('/{playlist}/videos/{video}', [PlaylistVideoController::class, 'detach'])->name('videos.detach');
+    Route::post('/{playlist}/reorder',          [PlaylistVideoController::class, 'reorder'])->name('reorder');
+});
 
 require __DIR__.'/auth.php';
