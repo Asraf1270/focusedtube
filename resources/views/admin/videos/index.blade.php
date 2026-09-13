@@ -63,47 +63,78 @@
                 <a href="{{ route('admin.videos.create') }}" class="btn-primary">Add your first video</a>
             </x-admin.empty-state>
         @else
-            <x-admin.data-table :headers="['Title', 'Channel', 'Category', 'Status', 'Views', 'Updated', '']">
-                @foreach ($videos as $video)
-                    <tr class="hover:bg-slate-50">
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-3">
-                                <img src="{{ $video->thumbnail_url }}"
-                                     alt=""
-                                     class="h-10 w-16 flex-none rounded object-cover ring-1 ring-slate-200"
-                                     loading="lazy">
-                                <div class="min-w-0">
-                                    <div class="truncate font-medium text-slate-900">{{ $video->title }}</div>
-                                    <div class="truncate text-xs text-slate-500">{{ $video->youtube_video_id }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-slate-600">{{ $video->channel_name ?: '—' }}</td>
-                        <td class="px-4 py-3 text-slate-600">{{ $video->category?->name ?: '—' }}</td>
-                        <td class="px-4 py-3">
-                            @php
-                                $tone = [
-                                    'draft'     => 'bg-slate-100 text-slate-700',
-                                    'published' => 'bg-emerald-100 text-emerald-700',
-                                    'archived'  => 'bg-amber-100 text-amber-700',
-                                ][$video->status] ?? 'bg-slate-100 text-slate-700';
-                            @endphp
-                            <span class="badge {{ $tone }}">{{ ucfirst($video->status) }}</span>
-                            @if ($video->is_featured)
-                                <span class="badge bg-brand-100 text-brand-700 ml-1">Featured</span>
-                            @endif
-                            @if ($video->is_daily_focus)
-                                <span class="badge bg-purple-100 text-purple-700 ml-1">Focus</span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 text-slate-600">{{ number_format($video->views_count) }}</td>
-                        <td class="px-4 py-3 text-slate-500">{{ $video->updated_at?->diffForHumans() }}</td>
-                        <td class="px-4 py-3 text-right">
-                            <a href="#" class="text-brand-600 hover:underline">Edit</a>
-                        </td>
-                    </tr>
-                @endforeach
-            </x-admin.data-table>
+        {{-- before the <x-admin.data-table>, add the bulk bar --}}
+<form method="POST" action="{{ route('admin.videos.bulk') }}" id="bulk-form" class="hidden mb-3">
+    @csrf
+    <div class="card flex flex-wrap items-center gap-3 px-4 py-3">
+        <span class="text-sm text-slate-600">
+            <span id="bulk-count">0</span> selected
+        </span>
+        <select name="action" required class="input w-auto">
+            <option value="">Choose action…</option>
+            <option value="publish">Publish</option>
+            <option value="unpublish">Move to drafts</option>
+            <option value="feature">Mark featured</option>
+            <option value="unfeature">Remove featured</option>
+            <option value="archive">Archive</option>
+            <option value="delete">Delete</option>
+        </select>
+        <button type="submit" class="btn-primary"
+                onclick="return confirm('Apply this action to the selected videos?');">
+            Apply
+        </button>
+    </div>
+</form>
+            <x-admin.data-table :headers="[
+    '' => true, // checkbox column header placeholder
+    'Title', 'Channel', 'Category', 'Status', 'Views', 'Updated', ''
+]">
+    @foreach ($videos as $video)
+        <tr class="hover:bg-slate-50">
+            <td class="px-4 py-3">
+                <input type="checkbox" form="bulk-form" name="ids[]" value="{{ $video->id }}"
+                       class="row-checkbox rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+            </td>
+            <td class="px-4 py-3">
+                {{-- existing title cell --}}
+                ...
+            </td>
+            {{-- channel / category / status / views / updated as before --}}
+            <td class="px-4 py-3 text-right whitespace-nowrap">
+                <a href="{{ route('admin.videos.edit', $video) }}"
+                   class="text-brand-600 hover:underline">Edit</a>
+
+                <span class="mx-1 text-slate-300">|</span>
+
+                @if ($video->status !== 'published')
+                    <form method="POST" action="{{ route('admin.videos.publish', $video) }}" class="inline">
+                        @csrf
+                        <button class="text-emerald-600 hover:underline">Publish</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('admin.videos.unpublish', $video) }}" class="inline">
+                        @csrf
+                        <button class="text-slate-600 hover:underline">Unpublish</button>
+                    </form>
+                @endif
+
+                <span class="mx-1 text-slate-300">|</span>
+
+                @if ($video->status !== 'archived')
+                    <form method="POST" action="{{ route('admin.videos.archive', $video) }}" class="inline">
+                        @csrf
+                        <button class="text-amber-600 hover:underline">Archive</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('admin.videos.restore', $video) }}" class="inline">
+                        @csrf
+                        <button class="text-slate-600 hover:underline">Restore</button>
+                    </form>
+                @endif
+            </td>
+        </tr>
+    @endforeach
+</x-admin.data-table>
 
             <div class="mt-4">
                 {{ $videos->links() }}
@@ -111,3 +142,24 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const bulkForm   = document.getElementById('bulk-form');
+        const bulkCount  = document.getElementById('bulk-count');
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+
+        if (! bulkForm) return;
+
+        function refresh() {
+            const checked = document.querySelectorAll('.row-checkbox:checked').length;
+            if (bulkCount) bulkCount.textContent = checked;
+            bulkForm.classList.toggle('hidden', checked === 0);
+        }
+
+        checkboxes.forEach(cb => cb.addEventListener('change', refresh));
+        refresh();
+    });
+</script>
+@endpush
